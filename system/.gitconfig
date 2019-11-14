@@ -1,0 +1,6 @@
+[user]
+    name = qbius
+    email = mich@lsurowka.email
+
+[alias] setup = "!f() { echo $(pwd); echo ${PWD}; $HOME/bin/github_repo_create.sh \"$PWD\" $@; }; f"
+
