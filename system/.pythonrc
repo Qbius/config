@@ -22,6 +22,9 @@ def load_state(pcid, path = PYTHONRC_STATES):
 
 if not os.path.exists(os.path.join(PYTHONRC_CACHE, 'vars.state')): save_state(dict(), 'vars', PYTHONRC_CACHE)
 
+def get_persistent():
+    return load_state('vars', PYTHONRC_CACHE)
+
 def save_session(sessid, path = PYTHONRC_SESSIONS):
     from dill import dump_session
     dump_session(os.path.join(path, f'{sessid}.session'))
@@ -40,7 +43,7 @@ def persist(*args, name = None):
         raise TypeError(f"persist() takes 1 argument but {len(args) + int(bool(name))} were given")
         
     global built_ins
-    current_state = load_state('vars', PYTHONRC_CACHE)
+    current_state = get_persistent()
 
     var = args[0] if onearg else name
     searched_val = lambda varname, value: varname not in built_ins and value is var if onearg else varname is name
@@ -60,7 +63,7 @@ def forget(*args, name = None):
         raise TypeError(f"forget() takes 1 argument but {len(args) + int(bool(name))} were given")
         
     global built_ins
-    current_state = load_state('vars', PYTHONRC_CACHE)
+    current_state = get_persistent()
 
     var = args[0] if onearg else name
     searched_val = lambda varname, value: varname not in built_ins and value is var if onearg else varname is name
@@ -76,11 +79,8 @@ def forget(*args, name = None):
         current_state.pop(k, None)
         save_state(current_state, 'vars', PYTHONRC_CACHE)
 
-def get_persistent():
-    return load_state('vars', PYTHONRC_CACHE)
-
 built_ins = list(globals().keys())
-for name, value in load_state('vars', PYTHONRC_CACHE).items():
+for name, value in get_persistent().items():
     globals()[name] = value
 
 if os.path.exists(os.path.join(PYTHONRC_CACHE, 'saved.session')):
