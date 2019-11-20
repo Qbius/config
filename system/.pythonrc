@@ -79,10 +79,14 @@ def forget(*args, name = None):
         current_state.pop(k, None)
         save_state(current_state, 'vars', PYTHONRC_CACHE)
 
-built_ins = list(globals().keys())
-for name, value in get_persistent().items():
-    globals()[name] = value
-
-if os.path.exists(os.path.join(PYTHONRC_CACHE, 'saved.session')):
-    load_session('saved', PYTHONRC_CACHE)
-    os.remove(os.path.join(PYTHONRC_CACHE, 'saved.session'))
+# please leave this at the bottom
+###################################################################
+built_ins = list(globals().keys())                                #
+for name, value in get_persistent().items():                      #
+    globals()[name] = value                                       #
+                                                                  #
+if os.path.exists(os.path.join(PYTHONRC_CACHE, 'saved.session')): #
+    load_session('saved', PYTHONRC_CACHE)                         #
+    os.remove(os.path.join(PYTHONRC_CACHE, 'saved.session'))      #
+###################################################################
+# thanks
