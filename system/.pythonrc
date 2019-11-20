@@ -45,38 +45,41 @@ def persist(*args, name = None):
     global built_ins
     current_state = get_persistent()
 
-    var = args[0] if onearg else name
-    searched_val = lambda varname, value: varname not in built_ins and value is var if onearg else varname is name
-    vars = {k: v for k, v in globals().items() if searched_val(k, v)}
-
-    if len(vars.items()) > 1:
+    names = [k for k, v in globals().items() if v is args[0]] if onearg else []
+    name = names[0] if len(names) == 1 else name if name in globals().keys() else None
+  
+    if len(names) > 1:
         print(f"More than one variable has that value: {', '.join(vars.keys())}.")
         print(f"Consider stating the variable's name explicitly, like so: persist(name = '{list(vars.keys())[0]}').")
-    elif len(vars.items()) == 0:
+    elif not name:
         print("No variables matching the given criteria")
+    elif name in built_ins:
+        print(f"{name} is either a built-in function or a .pythonrc-provided function.")
+        print("If you -really- need to do this, modify the 'built_ins' variable and then call this function again")
     else:
-        save_state({**current_state, **vars}, 'vars', PYTHONRC_CACHE)
+        save_state({**current_state, name: globals()[name]}, 'vars', PYTHONRC_CACHE)
 
 def forget(*args, name = None):
     onearg = len(args) == 1
     if (not onearg and name == None) or (len(args) > 0 and name):
-        raise TypeError(f"forget() takes 1 argument but {len(args) + int(bool(name))} were given")
+        raise TypeError(f"persist() takes 1 argument but {len(args) + int(bool(name))} were given")
         
     global built_ins
     current_state = get_persistent()
 
-    var = args[0] if onearg else name
-    searched_val = lambda varname, value: varname not in built_ins and value is var if onearg else varname is name
-    vars = {k: v for k, v in current_state.items() if searched_val(k, v)}
-
-    if len(vars.items()) > 1:
-        print(f"More than one saved variable has that value: {', '.join(vars.keys())}.")
-        print(f"Consider stating the variable's name explicitly, like so: forget(name = '{list(vars.keys())[0]}').")
-    elif len(vars.items()) == 0:
+    names = [k for k, v in current_state.items() if v is args[0]] if onearg else []
+    name = names[0] if len(names) == 1 else name if name in current_state.keys() else None
+  
+    if len(names) > 1:
+        print(f"More than one variable has that value: {', '.join(vars.keys())}.")
+        print(f"Consider stating the variable's name explicitly, like so: persist(name = '{list(vars.keys())[0]}').")
+    elif not name:
         print("No variables matching the given criteria")
+    elif name in built_ins:
+        print(f"{name} is either a built-in function or a .pythonrc-provided function.")
+        print("If you -really- need to do this, modify the 'built_ins' variable and then call this function again")
     else:
-        k, v = vars.popitem()
-        current_state.pop(k, None)
+        current_state.pop(name, None)
         save_state(current_state, 'vars', PYTHONRC_CACHE)
 
 # please leave this at the bottom
