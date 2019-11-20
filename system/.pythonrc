@@ -1,0 +1,88 @@
+import os
+import sys
+
+def save_state(what, pcid, path = '.pythonrc_cache/states'):
+    with open(f'{path}/{pcid}.state', 'wb') as where:
+        from dill import dump
+        dump(what, where, recurse = True)
+
+def load_state(pcid, path = '.pythonrc_cache/states'):
+    with open(f'{path}/{pcid}.info', 'rb') as where:
+        from dill import load
+        return load(where)
+
+def save_session(sessid, path = 'pythonrc_cache/sessions'):
+    from dill import dump_session
+    dump_session(f'{path}/{sessid}.session')
+    
+def load_session(sessid, path = 'pythonrc_cache/sessions'):
+    from dill import load_session
+    load_session(f'{path}/{sessid}.session')
+
+def pause():
+    save_session('saved', '.pythonrc_cache')
+    exit()
+
+def persist(*args, name = None):
+    onearg = len(args) == 1
+    if (not onearg and name != None) or (len(args) > 0 and name):
+        raise TypeError(f"persist() takes 1 argument but {len(args) + int(bool(name))} were given")
+        
+    global built_ins
+    current_state = load_state('.persist') if os.path.exists('.persist.info') else {}
+
+    var = args[0] if onearg else name
+    searched_val = lambda varname, value: varname not in built_ins and value is var if onearg else varname is name
+    vars = {k: v for k, v in globals().items() if searched_val(k, v)}
+
+    if len(vars.items()) > 1:
+        print(f"More than one variable has that value: {', '.join(vars.keys())}.")
+        print(f"Consider stating the variable's name explicitly, like so: persist(name = '{list(vars.keys())[0]}').")
+    elsif len(vars.items()) == 0:
+        print("No variables matching the given criteria")
+    else:
+        if 'vars' not in current_state: current_state['vars'] = {}
+        current_state['vars'] = {**current_state['vars'], **vars}
+        save_state(current_state, '.persist')
+
+def forget(*args, name = None):
+    onearg = len(args) == 1
+    if (not onearg and name != None) or (len(args) > 0 and name):
+        raise TypeError(f"forget() takes 1 argument but {len(args) + int(bool(name))} were given")
+        
+    global built_ins
+    current_state = load_state('.persist') if os.path.exists('.persist.info') else {}
+    if 'vars' not in current_state: current_state['vars'] = {}
+
+    var = args[0] if onearg else name
+    searched_val = lambda varname, value: varname not in built_ins and value is var if onearg else varname is name
+    vars = {k: v for k, v in current_state['vars'].items() if searched_val(k, v)}
+
+    if len(vars.items()) > 1:
+        print(f"More than one saved variable has that value: {', '.join(vars.keys())}.")
+        print(f"Consider stating the variable's name explicitly, like so: forget(name = '{list(vars.keys())[0]}').")
+    elsif len(vars.items()) == 0:
+        print("No variables matching the given criteria")
+    else:
+        k, v = vars.popitem()
+        current_state['vars'].pop(k, None)
+        save_state(current_state, '.persist')
+
+built_ins = list(globals().keys())
+if os.path.exists('.persist.info'):
+    for name, value in load_state('.persist')['vars'].items():
+        globals()[name] = value
+
+def init():
+    if not os.path.exists('.pythonrc_cache'): os.mkdir('.pythonrc_cache')
+    if not os.path.exists('.pythonrc_cache/states'): os.mkdir('.pythonrc_cache/states')
+    if not os.path.exists('.pythonrc_cache/sessions'): os.mkdir('.pythonrc_cache/sessions')
+
+    if not os.path.exists('.pythonrc_cache/vars.state')
+
+    if os.path.exists('.pythonrc_cache/saved.session'):
+        from dill import load_session
+        load_session('.pythonrc_cache/saved.session')
+        os.remove('.pythonrc_cache/saved.session')
+
+init()
