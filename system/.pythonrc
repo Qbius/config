@@ -36,7 +36,7 @@ def pause():
 
 def persist(*args, name = None):
     onearg = len(args) == 1
-    if (not onearg and name != None) or (len(args) > 0 and name):
+    if (not onearg and name == None) or (len(args) > 0 and name):
         raise TypeError(f"persist() takes 1 argument but {len(args) + int(bool(name))} were given")
         
     global built_ins
@@ -56,7 +56,7 @@ def persist(*args, name = None):
 
 def forget(*args, name = None):
     onearg = len(args) == 1
-    if (not onearg and name != None) or (len(args) > 0 and name):
+    if (not onearg and name == None) or (len(args) > 0 and name):
         raise TypeError(f"forget() takes 1 argument but {len(args) + int(bool(name))} were given")
         
     global built_ins
@@ -75,6 +75,9 @@ def forget(*args, name = None):
         k, v = vars.popitem()
         current_state.pop(k, None)
         save_state(current_state, 'vars', PYTHONRC_CACHE)
+
+def get_persistent():
+    return load_state('vars', PYTHONRC_CACHE)
 
 built_ins = list(globals().keys())
 for name, value in load_state('vars', PYTHONRC_CACHE).items():
